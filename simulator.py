@@ -1,5 +1,8 @@
+from PIL import Image, ImageOps
+
 from particle import Particle
 from spring import Spring
+from settings import SimulatorSettings
 from geometry import Point, Line, distance, segments_intersect
 from math import sqrt
 from collections import deque
@@ -115,8 +118,12 @@ def _spring_can_be_removed(spring, min_cycle_length, max_cycle_length, cycle):
         return (False, True)
 
 class SpringSimulator:
-    def __init__(self, settings):
-        self._settings = settings
+    def __init__(self, settings = None):
+        if settings:
+            self._settings = settings
+        else:
+            self._settings = SimulatorSettings()
+
         self._time = 0
         self._particles = []
         self._recently_added_springs = set()
@@ -221,8 +228,20 @@ class SpringSimulator:
             distance(Point(x, y), centre) + interval / 2 <= radius + 1e-5)
         self.debug()
 
-    def initialize_from_pixel_array(self, array, include_pixel, scale):
-        pass
+    def initialize_from_image(self, image, scale = 1.0):
+        image = image.convert("L")
+        interval = self._default_interval()
+        width = image.width * scale
+        height = image.height * scale
+        pixels = image.load()
+        if pixels[0,0]:
+            image = ImageOps.invert(image)
+            pixels = image.load()
+
+        self._initialize_field(Point(width * scale / 2, height * scale / 2),
+                               width * scale, height * scale, interval,
+                               lambda x, y : pixels[x, y])
+        self.debug()
 
     def run_pass(self, start, finish):
         length = distance(start, finish)
@@ -275,6 +294,7 @@ class SpringSimulator:
                 spring.update_force()
 
         self.relax_heat()
+        self.debug()
 
     def relax_heat(self):
         iteration_count = 0

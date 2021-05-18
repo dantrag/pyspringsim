@@ -25,7 +25,7 @@ class SimulatorSettings:
     def __init__(self, filename = ""):
         self._particle_default_radius = 1.0
         self._molten_particle_default_radius = 2.0
-        self._molten_particle_cooldown_time_ = 20
+        self._molten_particle_cooldown_time = 20
 
         self._spring_default_stiffness = 0.01
         self._spring_default_length = 5.5
